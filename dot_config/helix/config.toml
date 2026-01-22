@@ -1,0 +1,7 @@
+theme = "base16_default"
+
+[editor]
+default-yank-register = "+"
+
+[editor.cursor-shape]
+insert = "bar"
