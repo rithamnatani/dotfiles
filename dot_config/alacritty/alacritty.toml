@@ -1,2 +1,24 @@
 [env]
-term = "xterm-256color"
+TERM = "xterm-256color"
+
+[general]
+import = [
+  # "~/.config/alacritty/catppuccin-mocha.toml"
+]
+
+[window]
+opacity = 0.95
+
+[font]
+size = 16
+normal = {family = "Iosevka Term Nerd Font"}
+
+[colors]
+transparent_background_colors = true
+
+[selection]
+save_to_clipboard = true
+
+[cursor]
+style = { shape = "Beam", blinking = "On"}
+vi_mode_style = {shape = "Block"}
