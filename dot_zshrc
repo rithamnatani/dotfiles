@@ -15,4 +15,12 @@ compinit
 eval "$(starship init zsh)"
 
 export EDITOR="helix"
-fastfetch
+
+export BAT_THEME="Catppuccin Mocha"
+
+export MANROFFOPT="-c"
+export MANWIDTH=90
+export MANPAGER="less --use-color -Ddg* -DuC_ -DSM~ -DNy -DPy~ -DEr"
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
