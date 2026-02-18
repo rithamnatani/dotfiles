@@ -1,0 +1,144 @@
+;; Kanata Configuration for Wide-Mod Canary on Windows 11
+
+(defcfg
+  ;; If you want raw input to be blocked for mapped keys.
+  process-unmapped-keys yes
+  concurrent-tap-hold yes
+)
+
+;; ---------------------------------------------------------------------------
+;; SOURCE DEFINITION
+;; ---------------------------------------------------------------------------
+;; This defsrc covers 36 keys, forced top-row wide mod layout, trys to emulate split ergo keyboard with standard ansi keyboard layout
+
+
+(defsrc  
+  tab   q     w     e     r     t         u     i     o     p     [     ]     
+  caps  a     s     d     f     g         j     k     l     ;     '     ret
+        lsft  z     x     c     v         m     ,     .     /     rsft   
+                          lalt  spc       ralt  rmet  
+)
+
+(defvar
+  tap-time 200
+  hold-time 280 ;; Matches the recommended "Timeless" safe setting [5]
+
+  keys-l (            
+    tab   q     w     e     r   t         
+    caps  a     s     d     f   g         
+          lsft  z     x     c   v         
+  )
+  keys-r (   
+    u     i     o     p     [     ]     
+    j     k     l     ;     '     ret
+    m     ,     .     /     rsft
+  )
+)
+
+
+
+;; ---------------------------------------------------------------------------
+;; ALIASES
+;; ---------------------------------------------------------------------------
+(defalias
+
+  ;; Custom shifted pairs
+  com (fork , S-3 (lsft rsft))              ;; Tap: , | Shift: #
+  dot (fork . S-2 (lsft rsft))              ;; Tap: . | Shift: @
+  sem (fork ; S-4 (lsft rsft))              ;; Tap: ; | Shift: $
+  spa (fork spc S-- (lsft rsft))            ;; Tap: Space | Shift: _ 
+  quo (fork S-' (unshift ') (lsft rsft))    ;; Tap: " | Shift: '
+
+  ;; Layer Toggles (Thumbs)
+  nav (tap-hold 200 200 @spa (layer-toggle nav))  ;; Tap: Space | Hold: Nav (Left Thumb)
+  num (tap-hold 200 200 tab (layer-toggle num))   ;; Tap: Tab | Hold: Num (Left Thumb)
+  sym (tap-hold 200 200 bspc (layer-toggle sym))  ;; Tap: Bspc | Hold: Sym (Right Thumb)
+  fn  (tap-hold 200 200 ret (layer-toggle fn))    ;; Tap: Ret | Hold: Fn (Right Thumb)
+
+  ;; Home Row Mods (Canary)
+  a (tap-hold-release-keys $tap-time $hold-time a rmet $keys-r)
+  i (tap-hold-release-keys $tap-time $hold-time i ralt $keys-r)
+  e (tap-hold-release-keys $tap-time $hold-time e rctl $keys-r)
+  n (tap-hold-release-keys $tap-time $hold-time n rsft $keys-r)
+
+  t (tap-hold-release-keys $tap-time $hold-time t lsft $keys-l)
+  s (tap-hold-release-keys $tap-time $hold-time s lctl $keys-l)
+  r (tap-hold-release-keys $tap-time $hold-time r lalt $keys-l)
+  c (tap-hold-release-keys $tap-time $hold-time c lmet $keys-l)
+
+  ;; Symbol Layer Home Row Mods
+  excl (tap-hold-release-keys $tap-time $hold-time S-1 lmet $keys-l)
+  eq   (tap-hold-release-keys $tap-time $hold-time =   lalt $keys-l)
+  lpar (tap-hold-release-keys $tap-time $hold-time S-9 lctl $keys-l)
+  rpar (tap-hold-release-keys $tap-time $hold-time S-0 lsft $keys-l)
+
+  rbkt (tap-hold-release-keys $tap-time $hold-time ]   rsft $keys-r)
+  lbkt (tap-hold-release-keys $tap-time $hold-time [   rctl $keys-r)
+  rbrc (tap-hold-release-keys $tap-time $hold-time S-] ralt $keys-r)
+  lbrc (tap-hold-release-keys $tap-time $hold-time S-[ rmet $keys-r)
+
+)
+
+(defchordsv2
+  (x c) esc 50 all-released ()
+  (, .) del 50 all-released ()
+)
+
+;; Base Layer (Canary)
+;; `     w     l     y     p     b         z     f     o     u     ;     "
+;; tab   c     r     s     t     g         m     n     e     i     a     ret
+;;       q     j     v     d     k         x     h     /     ,     .
+;;                         tab   spc       bspc  ret
+
+(deflayer canary-layers
+  grv   w     l     y     p     b         z     f     o     u     @sem  @quo
+  tab   @c    @r    @s    @t    g         m     @n    @e    @i    @a    ret
+        q     j     v     d     k         x     h     /     @com  @dot
+                          @num  @nav      @sym  @fn
+)
+
+;; Navigation Layer
+;; _     _     _     _     _         pgup  home  left  down  redo
+;; lmet  lalt  lctl  lsft  _         pgdn  end   right up    undo
+;; _     _     _     _     _         caps  copy  paste cut   ins
+;;             _     _     _         _     _     _     _     _
+
+(deflayer nav
+  _     _     _     _     _     _         pgup  home  left  down  C-y   _
+  _     lmet  lalt  lctl  lsft  _         pgdn  end   right up    C-z   _
+        _     _     _     _     _         caps  C-c   C-v   C-x   ins
+                          _     _         _     _
+)
+
+;; Symbol Layer
+;; %     &     +     *     _         _     \     "     `     ^
+;; !     =     (     )     _         _     ]     [     }     {
+;; <     |     -     >     _         _     :     '     ~     _
+;;             _     _     _         _     _     _
+
+(deflayer sym
+  _     S-5   S-7   S-=   S-8   _         _     \     S-'   grv   S-6   _
+  _     @excl @eq   @lpar @rpar _         _     @rbkt @lbkt @rbrc @lbrc _
+        S-,   S-\   -     S-.   _         _     S-;   '     S-grv _
+                          _     _         _     _
+)
+
+;; Number Layer
+;; _     _     _     _     _         /     7     8     9     -
+;; lmet  lalt  lctl  lsft  _         *     4     5     6     +
+;; _     _     _     _     _         0     1     2     3     .
+;;             _     _     _         _     _     _
+
+(deflayer num
+  _     _     _     _     _     _         /     7     8     9     -     _
+  _     lmet  lalt  lctl  lsft  _         S-8   4     5     6     S-=   _
+        _     _     _     _     _         0     1     2     3     .
+                          _     _         _     _
+)
+
+(deflayer fn
+  _     F7    F8    F9    F12   slck      _     _     _     _     _     _
+  _     F4    F5    F6    F11   prtsc     _     rsft  rctl  ralt  rmet  _
+        F1    F2    F3    F10   pause     _     _     _     _     _
+                          _     _         _     _
+)
