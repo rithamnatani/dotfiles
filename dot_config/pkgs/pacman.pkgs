@@ -9,6 +9,7 @@ btrfs-progs
 chezmoi
 clang
 cliphist
+code
 cups
 cups-pk-helper
 dkms
@@ -29,6 +30,7 @@ htop
 intel-ucode
 inter-font
 iwd
+libayatana-appindicator
 libpulse
 libva-nvidia-driver
 lightdm
@@ -125,6 +127,7 @@ xfdesktop
 xfwm4
 xfwm4-themes
 xorg-server
+xwayland-satellite
 zellij
 zoxide
 zsh
