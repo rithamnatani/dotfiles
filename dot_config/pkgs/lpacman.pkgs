@@ -17,6 +17,7 @@ cups
 cups-pk-helper
 dkms
 efibootmgr
+evtest
 exo
 eza
 fastfetch
