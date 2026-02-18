@@ -11,8 +11,17 @@ zstyle :compinstall filename '/home/rthm/.zshrc'
 
 autoload -Uz compinit
 compinit
+zstyle ':completion:*' menu select=2
+eval $(dircolors)
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+
 # End of lines added by compinstall
 eval "$(starship init zsh)"
+
+[[ -n $terminfo[khome] ]] && bindkey $terminfo[khome] beginning-of-line
+[[ -n $terminfo[kend]  ]] && bindkey $terminfo[kend]  end-of-line
+[[ -n $terminfo[kdch1] ]] && bindkey $terminfo[kdch1] delete-char
 
 export EDITOR="helix"
 

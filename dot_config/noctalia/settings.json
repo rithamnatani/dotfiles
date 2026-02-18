@@ -65,10 +65,10 @@
                 {
                     "clockColor": "none",
                     "customFont": "",
-                    "formatHorizontal": "HH:mm ddd, MMM dd",
-                    "formatVertical": "HH mm - dd MM",
+                    "formatHorizontal": "h:mm ap | ddd, MMM dd",
+                    "formatVertical": "h mm ap - dd MM",
                     "id": "Clock",
-                    "tooltipFormat": "HH:mm ddd, MMM dd",
+                    "tooltipFormat": "hh:mm:ss ap | dddd, MMMM dd, yyyy",
                     "useCustomFont": false
                 },
                 {
@@ -158,6 +158,7 @@
                     "hidePassive": false,
                     "id": "Tray",
                     "pinned": [
+                        "systray"
                     ]
                 },
                 {
@@ -389,12 +390,12 @@
         "firstDayOfWeek": -1,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
-        "name": "Tokyo",
+        "name": "Wellington, FL",
         "showCalendarEvents": true,
         "showCalendarWeather": true,
         "showWeekNumberInCalendar": false,
-        "use12hourFormat": false,
-        "useFahrenheit": false,
+        "use12hourFormat": true,
+        "useFahrenheit": true,
         "weatherEnabled": true,
         "weatherShowEffects": true
     },
