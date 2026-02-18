@@ -33,3 +33,7 @@ export MANPAGER="less --use-color -Ddg* -DuC_ -DSM~ -DNy -DPy~ -DEr"
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
+
+# chezmoi quick push
+alias czpush='chezmoi git -- add -A && chezmoi git -- commit -m "update dotfiles" && chezmoi git -- push'
+
