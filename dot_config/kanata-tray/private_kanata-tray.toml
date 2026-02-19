@@ -20,7 +20,7 @@ autorestart_on_crash = false
 [presets.'Qwerty']
 # kanata_executable = 'usr/bin/kanata'
 kanata_config = '~/.config/kanata/qwerty.kbd'
-autorun = true
+autorun = false
 
 [presets.'Canary']
 kanata_config = '~/.config/kanata/canary.kbd'

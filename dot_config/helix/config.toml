@@ -1,4 +1,8 @@
 theme = "catppuccin_mocha"
 
+
+[editor]
+cursorline = false
+
 [editor.cursor-shape]
 insert = "bar"
