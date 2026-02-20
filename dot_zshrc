@@ -38,5 +38,4 @@ source <(fzf --zsh)
 alias czpush='chezmoi git -- add -A && chezmoi git -- commit -m "update dotfiles" && chezmoi git -- push'
 
 # package manager wrapper
-# source "$HOME/.config/pkgs/pkg.sh"
-
+source "$HOME/.config/pkgs/pkg.sh"

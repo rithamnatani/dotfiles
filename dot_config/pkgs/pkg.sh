@@ -1,28 +1,25 @@
 #!/bin/zsh
 # pkg - package list manager
 # Manages declarative package lists synced via chezmoi.
-# Does NOT auto-install anything. You review and run commands yourself.
+# Shows you the command, you type it to confirm, then it runs.
 #
 # Usage:
-#   pkg add <package> [--<machine>]   Add a package to a list
-#   pkg rm  <package> [--<machine>]   Remove a package from list(s)
-#   pkg ls  [--all|--<machine>]       List managed packages
-#   pkg diff                          Show what needs installing/removing
-#   pkg sync                          Generate install commands to review & run
+#   pkg add <package...> [--<machine>]   Install + add to list
+#   pkg rm  <package...> [--<machine>]   Remove + remove from list
+#   pkg ls  [--all|--<machine>]          List managed packages
+#   pkg diff                             Show what's missing or extra
+#   pkg sync                             Install missing packages
 
 PKGDIR="$HOME/.config/pkgs"
 
-# Get current machine name from chezmoi data
 _pkg_machine() {
     chezmoi data -f json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('machine',''))" 2>/dev/null
 }
 
-# Check if package is in official repos
 _pkg_is_official() {
     pacman -Si "$1" &>/dev/null
 }
 
-# Add a package to a list file (sorted, deduped)
 _pkg_list_add() {
     local pkg="$1" file="$2"
     if ! grep -qx "$pkg" "$file" 2>/dev/null; then
@@ -31,7 +28,6 @@ _pkg_list_add() {
     fi
 }
 
-# Remove a package from a list file
 _pkg_list_rm() {
     local pkg="$1" file="$2"
     if [[ -f "$file" ]]; then
@@ -39,7 +35,6 @@ _pkg_list_rm() {
     fi
 }
 
-# Re-add changed files to chezmoi source
 _pkg_readd() {
     chezmoi re-add "$PKGDIR/" 2>/dev/null
 }
@@ -50,67 +45,173 @@ pkg() {
 
     case "$action" in
         add)
-            local pkg="" target_machine=""
+            local pkgs=() target_machine=""
             for arg in "$@"; do
                 if [[ "$arg" == --* ]]; then
                     target_machine="${arg#--}"
                 else
-                    pkg="$arg"
+                    pkgs+=("$arg")
                 fi
             done
 
-            if [[ -z "$pkg" ]]; then
-                echo "Usage: pkg add <package> [--<machine>]"
+            if [[ ${#pkgs[@]} -eq 0 ]]; then
+                echo "Usage: pkg add <package...> [--<machine>]"
                 return 1
             fi
 
-            # Determine if official or AUR
-            local prefix
-            if _pkg_is_official "$pkg"; then
-                prefix="pacman"
-            else
-                prefix="aur"
+            local current_machine
+            current_machine=$(_pkg_machine)
+            local list_suffix="${target_machine:-common}"
+
+            # Split into official and AUR
+            local official=() aur=()
+            for p in "${pkgs[@]}"; do
+                if _pkg_is_official "$p"; then
+                    official+=("$p")
+                else
+                    aur+=("$p")
+                fi
+            done
+
+            # If targeting a different machine, just add to list (can't install)
+            if [[ -n "$target_machine" && "$target_machine" != "$current_machine" ]]; then
+                for p in "${pkgs[@]}"; do
+                    local prefix=$(_pkg_is_official "$p" && echo "pacman" || echo "aur")
+                    _pkg_list_add "$p" "$PKGDIR/${prefix}-${list_suffix}.pkgs"
+                done
+                echo "Added to ${list_suffix} lists (not on this machine, skipping install)"
+                _pkg_readd
+                return 0
             fi
 
-            local list_suffix="${target_machine:-common}"
-            local list_file="$PKGDIR/${prefix}-${list_suffix}.pkgs"
+            # Handle official packages
+            if [[ ${#official[@]} -gt 0 ]]; then
+                local cmd="sudo pacman -S ${official[*]}"
+                echo ""
+                echo "  Packages (official):"
+                for p in "${official[@]}"; do
+                    echo "    $p"
+                done
+                echo ""
+                echo "  List: pacman-${list_suffix}.pkgs"
+                echo ""
+                echo -n "Type 'pacman -S' to confirm: "
+                read -r confirm
+                if [[ "$confirm" == "pacman -S" ]]; then
+                    sudo pacman -S "${official[@]}"
+                    if [[ $? -eq 0 ]]; then
+                        for p in "${official[@]}"; do
+                            _pkg_list_add "$p" "$PKGDIR/pacman-${list_suffix}.pkgs"
+                        done
+                        _pkg_readd
+                        echo "Added to pacman-${list_suffix}.pkgs"
+                    else
+                        echo "Install failed, not updating list"
+                        return 1
+                    fi
+                else
+                    echo "Aborted"
+                    return 1
+                fi
+            fi
 
-            _pkg_list_add "$pkg" "$list_file"
-            echo "Added '$pkg' to $(basename "$list_file")"
-            echo "Run: $([ "$prefix" = "pacman" ] && echo "sudo pacman -S $pkg" || echo "paru -S $pkg")"
-
-            _pkg_readd
+            # Handle AUR packages
+            if [[ ${#aur[@]} -gt 0 ]]; then
+                echo ""
+                echo "  Packages (AUR):"
+                for p in "${aur[@]}"; do
+                    echo "    $p"
+                done
+                echo ""
+                echo "  List: aur-${list_suffix}.pkgs"
+                echo ""
+                echo -n "Type 'paru -S' to confirm: "
+                read -r confirm
+                if [[ "$confirm" == "paru -S" ]]; then
+                    paru -S "${aur[@]}"
+                    if [[ $? -eq 0 ]]; then
+                        for p in "${aur[@]}"; do
+                            _pkg_list_add "$p" "$PKGDIR/aur-${list_suffix}.pkgs"
+                        done
+                        _pkg_readd
+                        echo "Added to aur-${list_suffix}.pkgs"
+                    else
+                        echo "Install failed, not updating list"
+                        return 1
+                    fi
+                else
+                    echo "Aborted"
+                    return 1
+                fi
+            fi
             ;;
 
         rm)
-            local pkg="" target_machine=""
+            local pkgs=() target_machine=""
             for arg in "$@"; do
                 if [[ "$arg" == --* ]]; then
                     target_machine="${arg#--}"
                 else
-                    pkg="$arg"
+                    pkgs+=("$arg")
                 fi
             done
 
-            if [[ -z "$pkg" ]]; then
-                echo "Usage: pkg rm <package> [--<machine>]"
+            if [[ ${#pkgs[@]} -eq 0 ]]; then
+                echo "Usage: pkg rm <package...> [--<machine>]"
                 return 1
             fi
 
-            if [[ -n "$target_machine" ]]; then
-                for prefix in pacman aur; do
-                    _pkg_list_rm "$pkg" "$PKGDIR/${prefix}-${target_machine}.pkgs"
+            # If targeting a different machine, just remove from that list
+            local current_machine
+            current_machine=$(_pkg_machine)
+            if [[ -n "$target_machine" && "$target_machine" != "$current_machine" ]]; then
+                for p in "${pkgs[@]}"; do
+                    for prefix in pacman aur; do
+                        _pkg_list_rm "$p" "$PKGDIR/${prefix}-${target_machine}.pkgs"
+                    done
                 done
-                echo "Removed '$pkg' from $target_machine lists"
-            else
-                for f in "$PKGDIR"/pacman-*.pkgs "$PKGDIR"/aur-*.pkgs; do
-                    _pkg_list_rm "$pkg" "$f"
-                done
-                echo "Removed '$pkg' from all lists"
+                echo "Removed from ${target_machine} lists"
+                _pkg_readd
+                return 0
             fi
 
-            echo "Run: sudo pacman -Rns $pkg"
-            _pkg_readd
+            echo ""
+            echo "  Packages to remove:"
+            for p in "${pkgs[@]}"; do
+                echo "    $p"
+            done
+            if [[ -n "$target_machine" ]]; then
+                echo "  From: ${target_machine} lists only"
+            else
+                echo "  From: all lists"
+            fi
+            echo ""
+            echo -n "Type 'pacman -Rns' to confirm: "
+            read -r confirm
+            if [[ "$confirm" == "pacman -Rns" ]]; then
+                sudo pacman -Rns "${pkgs[@]}"
+                if [[ $? -eq 0 ]]; then
+                    for p in "${pkgs[@]}"; do
+                        if [[ -n "$target_machine" ]]; then
+                            for prefix in pacman aur; do
+                                _pkg_list_rm "$p" "$PKGDIR/${prefix}-${target_machine}.pkgs"
+                            done
+                        else
+                            for f in "$PKGDIR"/pacman-*.pkgs "$PKGDIR"/aur-*.pkgs; do
+                                _pkg_list_rm "$p" "$f"
+                            done
+                        fi
+                    done
+                    _pkg_readd
+                    echo "Removed from lists"
+                else
+                    echo "Removal failed, not updating lists"
+                    return 1
+                fi
+            else
+                echo "Aborted"
+                return 1
+            fi
             ;;
 
         ls)
@@ -144,7 +245,6 @@ pkg() {
                 return 1
             fi
 
-            # Build target list for this machine
             local target
             target=$(cat "$PKGDIR"/pacman-common.pkgs "$PKGDIR"/pacman-${current_machine}.pkgs \
                          "$PKGDIR"/aur-common.pkgs "$PKGDIR"/aur-${current_machine}.pkgs 2>/dev/null \
@@ -160,13 +260,11 @@ pkg() {
                 echo "$missing"
                 echo ""
             fi
-
             if [[ -n "$extra" ]]; then
                 echo "=== Extra (installed but not in $current_machine lists) ==="
                 echo "$extra"
                 echo ""
             fi
-
             if [[ -z "$missing" && -z "$extra" ]]; then
                 echo "Everything in sync!"
             fi
@@ -192,30 +290,44 @@ pkg() {
             local pacman_missing=$(comm -23 <(echo "$pacman_target") <(echo "$installed"))
             local aur_missing=$(comm -23 <(echo "$aur_target") <(echo "$installed"))
 
-            echo "# Review these commands, then copy-paste to run:"
-            echo ""
-            if [[ -n "$pacman_missing" ]]; then
-                echo "sudo pacman -S --needed $(echo $pacman_missing | tr '\n' ' ')"
-                echo ""
-            else
-                echo "# All pacman packages installed"
+            if [[ -z "$pacman_missing" && -z "$aur_missing" ]]; then
+                echo "Everything in sync!"
+                return 0
             fi
-            if [[ -n "$aur_missing" ]]; then
-                echo "paru -S --needed $(echo $aur_missing | tr '\n' ' ')"
+
+            if [[ -n "$pacman_missing" ]]; then
                 echo ""
-            else
-                echo "# All AUR packages installed"
+                echo "  Missing official packages:"
+                echo "$pacman_missing" | sed 's/^/    /'
+                echo ""
+                echo -n "Type 'pacman -S' to install, or anything else to skip: "
+                read -r confirm
+                if [[ "$confirm" == "pacman -S" ]]; then
+                    sudo pacman -S --needed $(echo "$pacman_missing")
+                fi
+            fi
+
+            if [[ -n "$aur_missing" ]]; then
+                echo ""
+                echo "  Missing AUR packages:"
+                echo "$aur_missing" | sed 's/^/    /'
+                echo ""
+                echo -n "Type 'paru -S' to install, or anything else to skip: "
+                read -r confirm
+                if [[ "$confirm" == "paru -S" ]]; then
+                    paru -S --needed $(echo "$aur_missing")
+                fi
             fi
             ;;
 
         *)
-            echo "Usage: pkg <add|rm|ls|diff|sync> [args]"
+            echo "Usage: pkg <add|rm|ls|diff|sync>"
             echo ""
-            echo "  add <pkg> [--machine]   Add package to a list (doesn't install)"
-            echo "  rm  <pkg> [--machine]   Remove package from list(s) (doesn't uninstall)"
-            echo "  ls  [--all|--machine]   Show managed package lists"
-            echo "  diff                    Show what's missing or extra"
-            echo "  sync                    Generate install commands to review & run"
+            echo "  add <pkg...> [--machine]   Install + add to list"
+            echo "  rm  <pkg...> [--machine]   Remove + remove from list"
+            echo "  ls  [--all|--machine]      Show managed package lists"
+            echo "  diff                       Show what's missing or extra"
+            echo "  sync                       Install missing packages"
             return 1
             ;;
     esac
