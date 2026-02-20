@@ -1,0 +1,19 @@
+#!/bin/sh
+# greetd config hash: {{ include "dot_config/greetd/config.toml" | sha256sum }}
+# kanata service hash: {{ include "dot_config/systemd/system/kanata.service" | sha256sum }}
+
+# Copy greetd config
+sudo mkdir -p /etc/greetd
+sudo cp "$HOME/.config/greetd/config.toml" /etc/greetd/config.toml
+
+# Copy kanata service
+sudo cp "$HOME/.config/kanata/kanata.service" /etc/systemd/system/kanata.service
+sudo systemctl daemon-reload
+
+# Swap display managers (safe to run even if already done)
+sudo systemctl disable lightdm || true
+sudo systemctl enable --now greetd
+sudo systemctl enable --now kanata
+
+# User services
+systemctl --user enable --now swayidle.service

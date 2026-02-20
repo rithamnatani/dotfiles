@@ -1,0 +1,14 @@
+[Unit]
+Description=SwayIdle Service
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/swayidle -w \
+  timeout 300 'qs -c noctalia-shell ipc call lockScreen lock' \
+  timeout 600 'qs -c noctalia-shell ipc call sessionMenu lockAndSuspend'
+Restart=on-failure
+TimeoutSec=30
+
+[Install]
+WantedBy=graphical-session.target

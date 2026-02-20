@@ -1,0 +1,63 @@
+#!/bin/bash
+set -euo pipefail
+# chezmoi:template:left-delimiter="# {{" right-delimiter="}}"
+
+# Package list hashes (chezmoi re-runs this script when any hash changes):
+# pacman-common hash: # {{ include "dot_config/pkgs/pacman-common.pkgs" | sha256sum }}
+# pacman-machine hash: # {{ include (printf "dot_config/pkgs/pacman-%s.pkgs" .machine) | sha256sum }}
+# aur-common hash: # {{ include "dot_config/pkgs/aur-common.pkgs" | sha256sum }}
+# aur-machine hash: # {{ include (printf "dot_config/pkgs/aur-%s.pkgs" .machine) | sha256sum }}
+
+PKGDIR="$HOME/.config/pkgs"
+MACHINE="# {{ .machine }}"
+
+echo "==> Package sync for machine: $MACHINE"
+
+# Build combined package lists (skip blank lines and comments)
+pacman_pkgs=$(cat "$PKGDIR/pacman-common.pkgs" "$PKGDIR/pacman-$MACHINE.pkgs" 2>/dev/null | grep -v '^#' | grep -v '^$' | sort -u)
+aur_pkgs=$(cat "$PKGDIR/aur-common.pkgs" "$PKGDIR/aur-$MACHINE.pkgs" 2>/dev/null | grep -v '^#' | grep -v '^$' | sort -u)
+
+# --- Install missing pacman packages ---
+if [[ -n "$pacman_pkgs" ]]; then
+    echo "==> Installing pacman packages..."
+    # shellcheck disable=SC2086
+    sudo pacman -S --needed --noconfirm $pacman_pkgs || true
+fi
+
+# --- Install missing AUR packages ---
+if [[ -n "$aur_pkgs" ]]; then
+    if command -v paru &>/dev/null; then
+        echo "==> Installing AUR packages..."
+        # shellcheck disable=SC2086
+        paru -S --needed --noconfirm $aur_pkgs || true
+    else
+        echo "WARNING: paru not found, skipping AUR packages"
+    fi
+fi
+
+# --- Detect orphaned packages ---
+# Packages that are installed AND were previously managed (in any list) but are no longer in the current lists
+all_managed=$(cat "$PKGDIR"/pacman-*.pkgs "$PKGDIR"/aur-*.pkgs 2>/dev/null | grep -v '^#' | grep -v '^$' | sort -u)
+all_target=$(printf '%s\n%s' "$pacman_pkgs" "$aur_pkgs" | sort -u)
+
+# Get explicitly installed packages
+installed=$(pacman -Qqe | sort -u)
+
+# Find packages that are installed AND in some managed list BUT not in this machine's target
+orphans=$(comm -23 <(comm -12 <(echo "$installed") <(echo "$all_managed")) <(echo "$all_target"))
+
+if [[ -n "$orphans" ]]; then
+    echo ""
+    echo "==> The following packages are installed but no longer in your lists for '$MACHINE':"
+    echo "$orphans" | sed 's/^/    /'
+    echo ""
+    read -rp "Remove these packages? [y/N]: " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        # shellcheck disable=SC2086
+        sudo pacman -Rns --noconfirm $orphans || true
+    else
+        echo "Skipping removal."
+    fi
+fi
+
+echo "==> Package sync complete!"

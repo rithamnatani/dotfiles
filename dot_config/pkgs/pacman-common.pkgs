@@ -1,6 +1,4 @@
 alacritty
-amd-ucode
-asusctl
 base
 base-devel
 bat
@@ -8,7 +6,6 @@ blueman
 bluez
 bluez-utils
 btrfs-progs
-cava
 chezmoi
 clang
 cliphist
@@ -17,7 +14,6 @@ cups
 cups-pk-helper
 dkms
 efibootmgr
-evtest
 exo
 eza
 fastfetch
@@ -26,6 +22,8 @@ foot
 fzf
 garcon
 git
+greetd
+greetd-tuigreet
 grim
 gst-plugin-pipewire
 gvfs
@@ -47,7 +45,6 @@ linux-lts-headers
 lldb
 man-db
 man-pages
-mesa-utils
 mousepad
 nano
 networkmanager
@@ -61,16 +58,14 @@ pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
-power-profiles-daemon
 ripgrep
 ristretto
-rofi
 slurp
 smartmontools
 sof-firmware
 starship
 sudo
-supergfxctl
+swayidle
 system-config-printer
 tealdeer
 thunar
@@ -86,7 +81,7 @@ vim
 wget
 wireless_tools
 wireplumber
-wlsunset
+wlopm
 wtype
 xarchiver
 xdg-utils
@@ -133,7 +128,6 @@ xfdesktop
 xfwm4
 xfwm4-themes
 xorg-server
-xorg-xev
 xwayland-satellite
 zellij
 zoxide

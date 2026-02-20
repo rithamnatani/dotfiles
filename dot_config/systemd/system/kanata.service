@@ -1,0 +1,15 @@
+[Unit]
+Description=Kanata keyboard remapper
+Before=display-manager.service
+Requires=local-fs.target
+After=local-fs.target
+
+[Service]
+ExecStartPre=/usr/bin/modprobe uinput
+ExecStart=/usr/bin/kanata -c /home/rthm/.config/kanata/canary.kbd
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=sysinit.target
+
