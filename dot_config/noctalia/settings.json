@@ -158,7 +158,8 @@
                     "hidePassive": false,
                     "id": "Tray",
                     "pinned": [
-                        "systray"
+                        "systray",
+                        "tray-icon tray app"
                     ]
                 },
                 {
@@ -401,7 +402,7 @@
     },
     "network": {
         "bluetoothDetailsViewMode": "grid",
-        "bluetoothHideUnnamedDevices": false,
+        "bluetoothHideUnnamedDevices": true,
         "bluetoothRssiPollIntervalMs": 10000,
         "bluetoothRssiPollingEnabled": false,
         "wifiDetailsViewMode": "grid",

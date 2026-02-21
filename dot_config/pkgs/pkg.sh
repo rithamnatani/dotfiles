@@ -9,6 +9,8 @@
 #   pkg ls  [--all|--<machine>]          List managed packages
 #   pkg diff                             Show what's missing or extra
 #   pkg sync                             Install missing packages
+#   pkg update                           Reconcile lists with installed state
+#   pkg move <package> <destination>     Move package between lists
 
 PKGDIR="$HOME/.config/pkgs"
 
@@ -41,7 +43,7 @@ _pkg_readd() {
 
 pkg() {
     local action="$1"
-    shift || { echo "Usage: pkg <add|rm|ls|diff|sync> [args]"; return 1; }
+    shift || { echo "Usage: pkg <add|rm|ls|diff|sync|update|move> [args]"; return 1; }
 
     case "$action" in
         add)
@@ -320,14 +322,122 @@ pkg() {
             fi
             ;;
 
+        update)
+            local current_machine
+            current_machine=$(_pkg_machine)
+            if [[ -z "$current_machine" ]]; then
+                echo "Error: machine not set. Run: chezmoi init"
+                return 1
+            fi
+
+            # All packages in ANY list
+            local all_listed
+            all_listed=$(cat "$PKGDIR"/*.pkgs 2>/dev/null | grep -v '^#' | grep -v '^$' | sort -u)
+
+            # All packages that should be on this machine
+            local target
+            target=$(cat "$PKGDIR"/pacman-common.pkgs "$PKGDIR"/pacman-${current_machine}.pkgs \
+                         "$PKGDIR"/aur-common.pkgs "$PKGDIR"/aur-${current_machine}.pkgs 2>/dev/null \
+                     | grep -v '^#' | grep -v '^$' | sort -u)
+
+            local installed
+            installed=$(pacman -Qqe | sort -u)
+
+            # Installed but not in any list
+            local unlisted
+            unlisted=$(comm -23 <(echo "$installed") <(echo "$all_listed"))
+
+            # In this machine's lists but not installed
+            local removed
+            removed=$(comm -23 <(echo "$target") <(echo "$installed"))
+
+            if [[ -z "$unlisted" && -z "$removed" ]]; then
+                echo "Lists are up to date!"
+                return 0
+            fi
+
+            if [[ -n "$unlisted" ]]; then
+                echo ""
+                echo "=== Installed but not in any list ==="
+                echo "$unlisted" | sed 's/^/  /'
+                echo ""
+                echo -n "Add these to ${current_machine} lists? [y/N]: "
+                read -r confirm
+                if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+                    for p in $(echo "$unlisted"); do
+                        if _pkg_is_official "$p"; then
+                            _pkg_list_add "$p" "$PKGDIR/pacman-${current_machine}.pkgs"
+                        else
+                            _pkg_list_add "$p" "$PKGDIR/aur-${current_machine}.pkgs"
+                        fi
+                    done
+                    echo "Added to ${current_machine} lists"
+                fi
+            fi
+
+            if [[ -n "$removed" ]]; then
+                echo ""
+                echo "=== In lists but not installed ==="
+                echo "$removed" | sed 's/^/  /'
+                echo ""
+                echo -n "Remove these from lists? [y/N]: "
+                read -r confirm
+                if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+                    for p in $(echo "$removed"); do
+                        for f in "$PKGDIR"/pacman-*.pkgs "$PKGDIR"/aur-*.pkgs; do
+                            _pkg_list_rm "$p" "$f"
+                        done
+                    done
+                    echo "Removed from lists"
+                fi
+            fi
+
+            _pkg_readd
+            ;;
+
+        move)
+            local pkg="$1" destination="$2"
+            if [[ -z "$pkg" || -z "$destination" ]]; then
+                echo "Usage: pkg move <package> <destination>"
+                echo "  destination: common, desktop, zephyrus, etc."
+                return 1
+            fi
+
+            # Find and remove from current list(s)
+            local found=0 prefix=""
+            for f in "$PKGDIR"/*.pkgs; do
+                [[ -f "$f" ]] || continue
+                if grep -qx "$pkg" "$f"; then
+                    local bn=$(basename "$f")
+                    prefix="${bn%%-*}"
+                    _pkg_list_rm "$pkg" "$f"
+                    echo "Removed from $bn"
+                    found=1
+                fi
+            done
+
+            if [[ $found -eq 0 ]]; then
+                echo "Package '$pkg' not found in any list"
+                return 1
+            fi
+
+            local dest_file="${prefix}-${destination}.pkgs"
+            _pkg_list_add "$pkg" "$PKGDIR/$dest_file"
+            echo "Moved to $dest_file"
+
+            _pkg_readd
+            ;;
+
         *)
-            echo "Usage: pkg <add|rm|ls|diff|sync>"
+            echo "Usage: pkg <add|rm|ls|diff|sync|update|move>"
             echo ""
-            echo "  add <pkg...> [--machine]   Install + add to list"
-            echo "  rm  <pkg...> [--machine]   Remove + remove from list"
-            echo "  ls  [--all|--machine]      Show managed package lists"
-            echo "  diff                       Show what's missing or extra"
-            echo "  sync                       Install missing packages"
+            echo "  add    <pkg...> [--machine]    Install + add to list"
+            echo "  rm     <pkg...> [--machine]    Remove + remove from list"
+            echo "  ls     [--all|--machine]       Show managed package lists"
+            echo "  diff                           Show what's missing or extra"
+            echo "  sync                           Install missing packages"
+            echo "  update                         Reconcile lists with installed state"
+            echo "  move   <pkg> <destination>     Move package between lists"
             return 1
             ;;
     esac

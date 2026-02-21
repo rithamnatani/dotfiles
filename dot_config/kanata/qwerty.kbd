@@ -1,4 +1,4 @@
-;; Kanata Configuration for Wide-Mod Canary on Windows 11
+;; Kanata Configuration for QWERTY QOL on Linux
 
 (defcfg
   ;; If you want raw input to be blocked for mapped keys.
@@ -12,27 +12,21 @@
 ;; This defsrc covers 61 keys, forced top-row wide mod layout, trys to emulate split ergo keyboard with standard ansi keyboard layout
 
 (defsrc
+  esc   f1    f2    f3    f4    f5        f6    f7    f8    f9    f10   f11   f12
   grv   1     2     3     4     5         6     7     8     9     0     -     =     bspc
-  tab   q     w     e     r     t         y     u     i     o     p     [     ]     del
-  caps  a     s     d     f     g         h     j     k     l     ;     '           ret
+  tab   q     w     e     r     t         y     u     i     o     p     [     ]     \
+  caps  a     s     d     f     g         h     j     k     l     ;     '           ent
   lsft  z     x     c     v     b         n     m     ,     .     /                 rsft
   lctl  lmet        lalt            spc               ralt        rmet  menu        rctl
 )
 
 (defvar
-  tap-time 200
-  hold-time 280 ;; Matches the recommended "Timeless" safe setting [5]
-
-  keys-l (            
-    tab   q     w     e     r   t         
-    caps  a     s     d     f   g         
-          lsft  z     x     c     v         
-  )
-  keys-r (   
-    u     i     o     p     [     ]     
-    j     k     l     ;     '     ret
-    m     ,     .     /     rsft
-  )
+  ;; Max ms a key can be held and still register as a tap (vs a hold)
+  tap-time 160
+  ;; Min ms a key must be held to activate the hold action
+  hold-time 160
+  ;; How long a one-shot modifier stays active waiting for the next keypress
+  sticky-time 2000
 )
 
 ;; ---------------------------------------------------------------------------
@@ -40,85 +34,84 @@
 ;; ---------------------------------------------------------------------------
 (defalias
 
-  ;; Custom shifted pairs
-  com (fork , S-3 (lsft rsft))              ;; Tap: , | Shift: #
-  dot (fork . S-2 (lsft rsft))              ;; Tap: . | Shift: @
-  sem (fork ; S-4 (lsft rsft))              ;; Tap: ; | Shift: $
-  spa (fork spc S-- (lsft rsft))            ;; Tap: Space | Shift: _ 
-  quo (fork S-' (unshift ') (lsft rsft))    ;; Tap: " | Shift: '
+  ;; Shift+Space = _
+  sp_ (fork spc S-- (lsft rsft))
 
   ;; Layer Toggles (Thumbs)
-  nav (tap-hold 200 200 @spa (layer-toggle nav))  ;; Tap: Space | Hold: Nav (Left Thumb)
-  num (tap-hold 200 200 tab (layer-toggle num))   ;; Tap: Tab | Hold: Num (Left Thumb)
-  sym (tap-hold 200 200 bspc (layer-toggle sym))  ;; Tap: Bspc | Hold: Sym (Right Thumb)
-  fn  (tap-hold 200 200 ret (layer-toggle fn))    ;; Tap: Ret | Hold: Fn (Right Thumb)
+  nav (tap-hold $tap-time $hold-time spc (layer-toggle nav))  ;; Tap: Space | Hold: Nav
+  num (tap-hold $tap-time $hold-time tab (layer-toggle num))    ;; Tap: Tab | Hold: Num
+  sym (tap-hold $tap-time $hold-time bspc (layer-toggle sym))   ;; Tap: Bspc | Hold: Sym
+  fn  (tap-hold $tap-time $hold-time ret (layer-toggle fn))     ;; Tap: Ret | Hold: Fn
 
-  ectl (tap-hold 200 200 esc lctl)
+  ectl (tap-hold $tap-time $hold-time esc lctl)
 
-  ;; One-shot sticky keys
-  lssh (one-shot-press-pcancel 500 lsft)
-  rssh (one-shot-press-pcancel 500 rsft)
-  lsct (one-shot-press-pcancel 500 lctl)
-  rsct (one-shot-press-pcancel 500 rctl)
-  lsme (one-shot-press-pcancel 500 lmet)
-  rsme (one-shot-press-pcancel 500 rmet)
-  lsal (one-shot-press-pcancel 500 lalt)
+  ;; One-shot sticky modifiers
+  lssh (one-shot-press-pcancel $sticky-time lsft)
+  rssh (one-shot-press-pcancel $sticky-time rsft)
+  lsct (one-shot-press-pcancel $sticky-time lctl)
+  rsct (one-shot-press-pcancel $sticky-time rctl)
+  lsme (one-shot-press-pcancel $sticky-time lmet)
+  rsme (one-shot-press-pcancel $sticky-time rmet)
+  lsal (one-shot-press-pcancel $sticky-time lalt)
+  rsal (one-shot-press-pcancel $sticky-time ralt)
 
-  ;; Symbol Layer Home Row Mods
-  excl (tap-hold-release-keys $tap-time $hold-time S-1 lmet $keys-l)
-  eq   (tap-hold-release-keys $tap-time $hold-time =   lalt $keys-l)
-  lpar (tap-hold-release-keys $tap-time $hold-time S-9 lctl $keys-l)
-  rpar (tap-hold-release-keys $tap-time $hold-time S-0 lsft $keys-l)
-
-  rbkt (tap-hold-release-keys $tap-time $hold-time ]   rsft $keys-r)
-  lbkt (tap-hold-release-keys $tap-time $hold-time [   rctl $keys-r)
-  rbrc (tap-hold-release-keys $tap-time $hold-time S-] ralt $keys-r)
-  lbrc (tap-hold-release-keys $tap-time $hold-time S-[ rmet $keys-r)
+    ;; Nav layer aliases
+  cpy C-c
+  pst C-v
+  cut C-x
+  und C-z
+  rdo C-y
 )
 
 (defchordsv2
   (lalt ralt) (layer-toggle fn) 50 first-release ()
+  (d f) esc 50 all-released ()
 )
 
 (deflayer base
-  grv   1     2     3     4     5         6     7     8     9     0     -     =     bspc
-  tab   q     w     e     r     t         y     u     i     o     p     [     ]     del
-  @ectl a     s     d     f     g         h     j     k     l     ;     '           ret
-  @lssh z     x     c     v     b         n     m     ,     .     /                 @rssh
-  @lsct @lsme       @lsal           @nav              @sym        @rsme menu        @rsct
+  _     _     _     _     _     _         _     _     _     _     _     _     _
+  _     _     _     _     _     _         _     _     _     _     _     _     _     _
+  _     _     _     _     _     _         _     _     _     _     _     _     _     _
+  @ectl _     _     _     _     _         _     _     _     _     _     _           _
+  @lssh _     _     _     _     _         _     _     _     _     _                 @rssh
+  @lsct @lsme       @lsal           @nav              @rsal       @rsme _           @rsct
 )
 
 ;; Navigation Layer
 (deflayer nav
+  _     _     _     _     _     _         _     _     _     _     _     _     _
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
-  _     _     _     _     _     _         home  pgup  pgdn  end   C-y   _     _     _
-  _     @lsme @lsal @lsct @lssh _         left  down  up    right C-z   _           _
-  _     _     _     _     _     _         caps  C-c   C-v   C-x   _                 _
+  _     tab   _     esc   M-ins _         home  pgup  pgdn  end   bspc  _     _     _
+  caps  @lsme @lsal @lsct @lssh _         left  down  up    right ent   _           _
+  _     @und  @cut  @cpy  @pst  _         _     del   _     _     _                 _
   _     _           _               _                 _           _     _           _
 )
 
-;; Symbol Layer
+;; Symbol Layer (S- versions of num layer)
 (deflayer sym
+  _     _     _     _     _     _         _     _     _     _     _     _     _
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
-  _     S-5   S-7   S-=   S-8   _         _     \     S-'   grv   S-6   _     _     _
-  _     S-1   =     S-9   S-0   _         _     ]     [     S-]   S-[   _           _
-  _     S-,   S-\   -     S-.   _         _     S-;   '     S-grv _                 _
-  _     _           _               _                 _           _     _           _
+  _     S-1   S-2   S-3   S-4   S-5       S-6   S-7   S-8   S-9   S-0   S--   S-=   _
+  _     @lsme @lsal @lsct @lssh f11       f12   @rssh @rsct @rsal @rsme S-'         _
+  _     _     -     =     S-=   _         _     [     ]     {     }                 _
+  _     _           _               S--               _           _     _           _
 )
 
 ;; Number Layer
 (deflayer num
+  _     _     _     _     _     _         _     _     _     _     _     _     _
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
-  _     _     _     _     _     _         /     7     8     9     -     _     _     _
-  _     @lsme @lsal @lsct @lssh _         S-8   4     5     6     S-=   _           _
-  _     _     _     _     _     _         0     1     2     3     .                 _
+  _     1     2     3     4     5         6     7     8     9     0     _     _     _
+  _     @lsme @lsal @lsct @lssh f11       f12   @rssh @rsct @rsal @rsme _           _
+  _     f1    f2    f3    f4    f5        f6    f7    f8    f9    f10               _
   _     _           _               _                 _           _     _           _
 )
 
 
-;;testing kanata with the new changes hello
+
 ;; Function Layer
 (deflayer fn
+  _     _     _     _     _     _         _     _     _     _     _     _     _
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
   _     _     _     _     _     _         F12   F7    F8    F9    slck  _     _     _
   _     @lsme @lsal @lsct @lssh _         F11   F4    F5    F6    prtsc _           _

@@ -1,5 +1,5 @@
 ;; Kanata Configuration for 34 key Wide-Mod Canary on ANSI Keyboards
-;; HRM Strategy: Approach A (layer-switch + on-idle) with tap-hold-release-keys nesting
+;; Oneshot Modifiers (no HRMs)
 
 (defcfg
   process-unmapped-keys yes
@@ -21,81 +21,9 @@
 ;; VARIABLES
 ;; ---------------------------------------------------------------------------
 (defvar
-  tap-time          200   ;; tap-repress-timeout (quick-tap in ZMK)
-  hold-time         280   ;; tapping-term
-  require-prior-idle 150  ;; ms of idle before HRMs re-engage
-
-  ;; Positional key lists — same-hand keys that force HRM to resolve as tap
-  keys-l (
-    q     w     e     r     t
-    a     s     d     f     g
-    lsft  z     x     c     v
-  )
-  keys-r (
-    u     i     o     p     [
-    j     k     l     ;     '
-    m     ,     .     /     rsft
-  )
-)
-
-;; ---------------------------------------------------------------------------
-;; VIRTUAL KEYS
-;; ---------------------------------------------------------------------------
-(defvirtualkeys
-  to-base (layer-switch canary-base)
-)
-
-;; ---------------------------------------------------------------------------
-;; TEMPLATES
-;; ---------------------------------------------------------------------------
-
-;; @tap — fires on every HRM tap to enter nomods layer
-;; and schedule a return to base after idle timeout
-(defalias
-  tap (multi
-    (layer-switch canary-nomods)
-    (on-idle $require-prior-idle tap-virtualkey to-base)
-  )
-)
-
-;; Left-hand HRM: tap-hold-release-keys with @tap on tap action
-(deftemplate lhrm (tap-key hold-key)
-  (tap-hold-release-keys
-    $tap-time $hold-time
-    (multi $tap-key @tap)
-    $hold-key
-    $keys-l
-  )
-)
-
-;; Right-hand HRM: same, with right-side key list
-(deftemplate rhrm (tap-key hold-key)
-  (tap-hold-release-keys
-    $tap-time $hold-time
-    (multi $tap-key @tap)
-    $hold-key
-    $keys-r
-  )
-)
-
-;; Symbol-layer left HRM: no @tap (don't fight layer-toggle sym)
-(deftemplate slhrm (tap-key hold-key)
-  (tap-hold-release-keys
-    $tap-time $hold-time
-    $tap-key
-    $hold-key
-    $keys-l
-  )
-)
-
-;; Symbol-layer right HRM: no @tap
-(deftemplate srhrm (tap-key hold-key)
-  (tap-hold-release-keys
-    $tap-time $hold-time
-    $tap-key
-    $hold-key
-    $keys-r
-  )
+  tap-time    200
+  hold-time   280
+  sticky-time 1000
 )
 
 ;; ---------------------------------------------------------------------------
@@ -108,57 +36,29 @@
   dot (fork . S-2 (lsft rsft))              ;; Tap: . | Shift: @
   sem (fork ; S-4 (lsft rsft))              ;; Tap: ; | Shift: $
   spa (fork spc S-- (lsft rsft))            ;; Tap: Space | Shift: _
-  quo (fork S-' (unshift ') (lsft rsft))    ;; Tap: " | Shift: '
 
   ;; Layer Toggles (Thumbs)
-  nav (tap-hold 200 200 @spa (layer-toggle nav))   ;; Tap: Space | Hold: Nav
-  num (tap-hold 200 200 esc (layer-toggle num))    ;; Tap: Esc | Hold: Num
-  sym (tap-hold 200 200 bspc (layer-toggle sym))   ;; Tap: Bspc | Hold: Sym
-  fn  (tap-hold 200 200 del (layer-toggle fn))     ;; Tap: Del | Hold: Fn
+  nav (tap-hold $tap-time $hold-time @spa (layer-toggle nav))   ;; Tap: Space | Hold: Nav
+  num (tap-hold $tap-time $hold-time esc (layer-toggle num))    ;; Tap: Esc | Hold: Num
+  sym (tap-hold $tap-time $hold-time bspc (layer-toggle sym))   ;; Tap: Bspc | Hold: Sym
+  fn  (tap-hold $tap-time $hold-time del (layer-toggle fn))     ;; Tap: Del | Hold: Fn
 
-  ;; ── Home Row Mods (Canary) ──────────────────────────
-  ;; Right hand
-  ha (t! rhrm   a      rmet)
-  hi (t! rhrm   i      ralt)
-  he (t! rhrm   e      rctl)
-  hn (t! rhrm   n      rsft)
+  ;; One-shot sticky modifiers
+  lssh (one-shot-press-pcancel $sticky-time lsft)
+  rssh (one-shot-press-pcancel $sticky-time rsft)
+  lsct (one-shot-press-pcancel $sticky-time lctl)
+  rsct (one-shot-press-pcancel $sticky-time rctl)
+  lsme (one-shot-press-pcancel $sticky-time lmet)
+  rsme (one-shot-press-pcancel $sticky-time rmet)
+  lsal (one-shot-press-pcancel $sticky-time lalt)
+  rsal (one-shot-press-pcancel $sticky-time ralt)
 
-  ;; Left hand
-  ht (t! lhrm   t      lsft)
-  hs (t! lhrm   s      lctl)
-  hr (t! lhrm   r      lalt)
-  hc (t! lhrm   c      lmet)
-
-  ;; ── Symbol Layer Home Row Mods (no @tap — stay on sym) ──
-  excl (t! slhrm   S-1    lmet)
-  eq   (t! slhrm   =      lalt)
-  lpar (t! slhrm   S-9    lctl)
-  rpar (t! slhrm   S-0    lsft)
-
-  rbkt (t! srhrm   ]      rsft)
-  lbkt (t! srhrm   [      rctl)
-  rbrc (t! srhrm   S-]    ralt)
-  lbrc (t! srhrm   S-[    rmet)
-
-  ;; ── Non-HRM keys as typing-layer triggers ──────────
-  tw (multi w @tap)
-  tl (multi l @tap)
-  ty (multi y @tap)
-  tp (multi p @tap)
-  tb (multi b @tap)
-  tz (multi z @tap)
-  tf (multi f @tap)
-  to (multi o @tap)
-  tu (multi u @tap)
-  tq (multi q @tap)
-  tj (multi j @tap)
-  tv (multi v @tap)
-  td (multi d @tap)
-  tk (multi k @tap)
-  tx (multi x @tap)
-  th (multi h @tap)
-  tg (multi g @tap)
-  tm (multi m @tap)
+  ;; Nav layer aliases
+  cpy C-c
+  pst C-v
+  cut C-x
+  und C-z
+  rdo C-y
 )
 
 (defchordsv2
@@ -167,7 +67,7 @@
 )
 
 ;; ---------------------------------------------------------------------------
-;; BASE LAYER (Canary) — HRMs active
+;; BASE LAYER (Canary)
 ;; ---------------------------------------------------------------------------
 ;; w     l     y     p     b         z     f     o     u     ;
 ;; c     r     s     t     g         m     n     e     i     a
@@ -175,17 +75,6 @@
 ;;                   esc   spc       bspc  del
 
 (deflayer canary-base
-  @tw   @tl   @ty   @tp   @tb       @tz   @tf   @to   @tu   @sem
-  @hc   @hr   @hs   @ht   @tg       @tm   @hn   @he   @hi   @ha
-  @tq   @tj   @tv   @td   @tk       @tx   @th   /     @com  @dot
-                    @num  @nav      @sym  @fn
-)
-
-;; ---------------------------------------------------------------------------
-;; NOMODS LAYER — plain keys during fast typing
-;; ---------------------------------------------------------------------------
-
-(deflayer canary-nomods
   w     l     y     p     b         z     f     o     u     @sem
   c     r     s     t     g         m     n     e     i     a
   q     j     v     d     k         x     h     /     @com  @dot
@@ -193,17 +82,17 @@
 )
 
 ;; ---------------------------------------------------------------------------
-;; NAV LAYER
+;; NAV LAYER — oneshots on left home row
 ;; ---------------------------------------------------------------------------
 (deflayer nav
-  _     _     _     _     _         pgup  home  lft   down  C-y
-  lmet  lalt  lctl  lsft  _         pgdn  end   rght  up    C-z
-  _     _     _     _     _         caps  C-c   C-v   C-x   ins
+  _     _     _     _     _         pgup  home  lft   down  @rdo
+  @lsme @lsal @lsct @lssh _         pgdn  end   rght  up    @und
+  _     _     _     _     _         caps  @cpy  @pst  @cut  ins
                     _     _         _     _
 )
 
 ;; ---------------------------------------------------------------------------
-;; SYMBOL LAYER
+;; SYMBOL LAYER — plain symbols, no mods
 ;; ---------------------------------------------------------------------------
 ;; %     &     +     *     _         _     \     "     `     ^
 ;; !     =     (     )     _         _     ]     [     }     {
@@ -211,27 +100,28 @@
 
 (deflayer sym
   S-5   S-7   S-=   S-8   _         _     \     S-'   `     S-6
-  @excl @eq   @lpar @rpar _         _     @rbkt @lbkt @rbrc @lbrc
+  S-1   =     S-9   S-0   _         _     ]     [     }     {
   S-,   S-\   -     S-.   _         _     S-;   '     S-`   _
                     _     _         _     _
 )
 
 ;; ---------------------------------------------------------------------------
-;; NUM LAYER
+;; NUM LAYER (num_v2) — oneshots on home row
 ;; ---------------------------------------------------------------------------
 (deflayer num
-  _     _     _     _     _         /     7     8     9     -
-  lmet  lalt  lctl  lsft  _         S-8   4     5     6     S-=
-  _     _     _     _     _         0     1     2     3     .
+  3     2     1     0     4         9     5     6     7     8
+  @lsme @lsal @lsct @lssh f11       f12   @rssh @rsct @rsal @rsme
+  f3    f2    f1    f10   f4        f9    f5    f6    f7    f8
                     _     _         _     _
 )
 
 ;; ---------------------------------------------------------------------------
-;; FN LAYER
+;; FN LAYER — media & weird keys (no mods)
 ;; ---------------------------------------------------------------------------
+;; home row > top (no pinky) > bottom (no pinky) > inside > outside
 (deflayer fn
-  f7    f8    f9    f12   slck      _     _     _     _     _
-  f4    f5    f6    f11   prnt      _     rsft  rctl  ralt  rmet
-  f1    f2    f3    f10   brk       _     _     _     _     _
+  _     brdn  brup  prnt  _         _     ins   slck  brk   _
+  _     prev  pp    next  _         _     vold  volu  mute  _
+  _     caps  ssrq  comp  _         _     _     _     _     _
                     _     _         _     _
 )
