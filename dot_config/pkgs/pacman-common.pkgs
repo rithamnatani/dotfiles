@@ -87,6 +87,7 @@ wget
 wireless_tools
 wireplumber
 wlopm
+wlr-randr
 wlsunset
 wtype
 xarchiver
