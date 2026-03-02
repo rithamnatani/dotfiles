@@ -24,7 +24,7 @@
   tap-time          200   ;; tap-repress-timeout (quick-tap in ZMK)
   hold-time         280   ;; tapping-term
   require-prior-idle 150  ;; ms of idle before HRMs re-engage
-  sticky-time       1000  ;; one-shot modifier timeout
+  sticky-time       1500  ;; one-shot modifier timeout
 
   ;; Positional key lists — same-hand keys that force HRM to resolve as tap
   keys-l (
@@ -187,6 +187,7 @@
   (i o) ent 50 all-released ()
   (o p) del 50 all-released ()
 
+  (s ;) (caps-word $sticky-time) 50 all-released ()  ;; Caps Word
 )
 
 ;; ---------------------------------------------------------------------------
