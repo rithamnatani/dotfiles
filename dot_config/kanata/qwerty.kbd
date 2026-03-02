@@ -17,7 +17,7 @@
   tab   q     w     e     r     t         y     u     i     o     p     [     ]     \
   caps  a     s     d     f     g         h     j     k     l     ;     '           ent
   lsft  z     x     c     v     b         n     m     ,     .     /                 rsft
-  lctl  lmet        lalt            spc               ralt        rmet  menu        rctl
+  lctl  lmet  lalt              spc                   ralt  rctl              menu  rmet
 )
 
 (defvar
@@ -42,6 +42,11 @@
   num (tap-hold $tap-time $hold-time tab (layer-toggle num))    ;; Tap: Tab | Hold: Num
   sym (tap-hold $tap-time $hold-time bspc (layer-toggle sym))   ;; Tap: Bspc | Hold: Sym
   fn  (tap-hold $tap-time $hold-time ret (layer-toggle fn))     ;; Tap: Ret | Hold: Fn
+
+  ;; One-shot Nav: activates nav layer for one keypress.
+  ;; One-shot modifiers on the nav layer stack with this (don't consume it),
+  ;; so e.g. osnv → lmet → lsft → left → auto-returns to base.
+  osnv (one-shot-press-pcancel $sticky-time (layer-while-held nav))
 
   ectl (tap-hold $tap-time $hold-time esc lctl)
 
@@ -73,18 +78,18 @@
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
   _     _     _     _     _     _         _     _     _     _     _     _     _     _
   @ectl _     _     _     _     _         _     _     _     _     _     _           _
-  @lssh _     _     _     _     _         _     _     _     _     _                 @rssh
-  @lsct @lsme       @lsal           @nav              @rsal       @rsme _           @rsct
+  @lssh _     _     _     _     _         _     _     _     _     _                 @rsal
+  @lsct @lsme @osnv             @nav                  @rssh @rsct             _     @rsme
 )
 
 ;; Navigation Layer
 (deflayer nav
   _     _     _     _     _     _         _     _     _     _     _     _     _
-  _     _     _     _     _     _         _     _     _     _     _     _     _     _
+  _     f1    f2    f3    f4    f5        f6    f7    f8    f9    f10   f11   f12   _
   _     tab   _     esc   M-ins _         home  pgup  pgdn  end   bspc  _     _     _
   caps  @lsme @lsal @lsct @lssh _         left  down  up    right ent   _           _
   _     @und  @cut  @cpy  @pst  _         _     del   _     _     _                 _
-  _     _           _               _                 _           _     _           _
+  _     _     _                 _                     _     _                 _     _
 )
 
 ;; Symbol Layer (S- versions of num layer)
@@ -94,7 +99,7 @@
   _     S-1   S-2   S-3   S-4   S-5       S-6   S-7   S-8   S-9   S-0   S--   S-=   _
   _     @lsme @lsal @lsct @lssh f11       f12   @rssh @rsct @rsal @rsme S-'         _
   _     _     -     =     S-=   _         _     [     ]     {     }                 _
-  _     _           _               S--               _           _     _           _
+  _     _     _                 S--                   _     _                 _     _
 )
 
 ;; Number Layer
@@ -104,7 +109,7 @@
   _     1     2     3     4     5         6     7     8     9     0     _     _     _
   _     @lsme @lsal @lsct @lssh f11       f12   @rssh @rsct @rsal @rsme _           _
   _     f1    f2    f3    f4    f5        f6    f7    f8    f9    f10               _
-  _     _           _               _                 _           _     _           _
+  _     _     _                 _                     _     _                 _     _
 )
 
 
@@ -116,5 +121,5 @@
   _     _     _     _     _     _         F12   F7    F8    F9    slck  _     _     _
   _     @lsme @lsal @lsct @lssh _         F11   F4    F5    F6    prtsc _           _
   _     _     _     _     _     _         F10   F1    F2    F3    pause             _
-  _     _           _               _                 _           _     _           _
+  _     _     _                 _                     _     _                 _     _
 )

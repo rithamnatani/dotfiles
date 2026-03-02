@@ -117,6 +117,11 @@
   sym (tap-hold $tap-time $hold-time bspc (layer-toggle sym))   ;; Tap: Bspc | Hold: Sym
   fn  (tap-hold $tap-time $hold-time del (layer-toggle fn))     ;; Tap: Del | Hold: Fn
 
+  ;; One-shot layer toggles (for combos)
+  os-num (one-shot-press $sticky-time (layer-toggle num))
+  os-sym (one-shot-press $sticky-time (layer-toggle sym))
+  os-fn  (one-shot-press $sticky-time (layer-toggle fn))
+
   ;; One-shot sticky modifiers
   lssh (one-shot-press-pcancel $sticky-time lsft)
   rssh (one-shot-press-pcancel $sticky-time rsft)
@@ -173,8 +178,15 @@
 )
 
 (defchordsv2
-  (e r) tab 50 all-released ()
+  (e r) esc 50 all-released ()
+  (w e) tab 50 all-released ()
+
+  (x c) @os-num 50 all-released ()    ;; One-shot Num
+  (z x) @os-fn  50 all-released ()    ;; One-shot Fn
+
   (i o) ent 50 all-released ()
+  (o p) del 50 all-released ()
+
 )
 
 ;; ---------------------------------------------------------------------------
@@ -189,7 +201,7 @@
   @tw   @tl   @ty   @tp   @tb       @tz   @tf   @to   @tu   @sem
   @hc   @hr   @hs   @ht   @tg       @tm   @hn   @he   @hi   @ha
   @tq   @tj   @tv   @td   @tk       @tx   @th   /     @com  @dot
-                    @num  @nav      @sym  @fn
+                    _     @nav      @sym  _
 )
 
 ;; ---------------------------------------------------------------------------
@@ -200,30 +212,30 @@
   w     l     y     p     b         z     f     o     u     @sem
   c     r     s     t     g         m     n     e     i     a
   q     j     v     d     k         x     h     /     @com  @dot
-                    @num  @nav      @sym  @fn
+                    _     @nav      @sym  _
 )
 
 ;; ---------------------------------------------------------------------------
 ;; NAV LAYER
 ;; ---------------------------------------------------------------------------
 (deflayer nav
-  _     _     _     _     _         pgup  home  lft   down  C-y
-  @lsme @lsal @lsct @lssh _         pgdn  end   rght  up    C-z
-  _     _     _     _     _         caps  C-c   C-v   C-x   ins
+  _     _     _     _     _         caps  home  lft   down  C-y
+  @lsme @lsal @lsct @lssh _         pgup  end   rght  up    C-z
+  _     _     _     _     _         pgdn  C-c   C-v   C-x   ins
                     _     _         _     _
 )
 
 ;; ---------------------------------------------------------------------------
 ;; SYMBOL LAYER
 ;; ---------------------------------------------------------------------------
-;; %     &     +     *     _         _     \     "     `     ^
+;; %     &     +     *     _         _     :     "     '     ^
 ;; !     =     (     )     _         _     ]     [     }     {
-;; <     |     -     >     _         _     :     '     ~     _
+;; <     |     -     >     _         _     \     `     ~     _
 
 (deflayer sym
-  S-5   S-7   S-=   S-8   _         _     \     S-'   `     S-6
+  S-5   S-7   S-=   S-8   _         _     S-;   S-'   '     S-6
   @excl @eq   @lpar @rpar _         _     @rbkt @lbkt @rbrc @lbrc
-  S-,   S-\   -     S-.   _         _     S-;   '     S-`   _
+  S-,   S-\   -     S-.   _         _     \     `     S-`   _
                     _     _         _     _
 )
 
@@ -231,7 +243,7 @@
 ;; NUM LAYER
 ;; ---------------------------------------------------------------------------
 (deflayer num
-  _     _     _     _     _         -     4     5     6     -
+  _     _     _     _     _         _     4     5     6     _
   @lsme @lsal @lsct @lssh _         _     0     1     2     3
   _     _     _     _     _         _     7     8     9     _
                     _     _         _     _
