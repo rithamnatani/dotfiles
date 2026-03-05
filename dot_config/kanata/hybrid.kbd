@@ -108,7 +108,6 @@
   ;; Custom shifted pairs
   com (fork , S-3 (lsft rsft))              ;; Tap: , | Shift: #
   dot (fork . S-2 (lsft rsft))              ;; Tap: . | Shift: @
-  sem (fork ; S-4 (lsft rsft))              ;; Tap: ; | Shift: $
   spa (fork spc S-- (lsft rsft))            ;; Tap: Space | Shift: _
   quo (fork S-' (unshift ') (lsft rsft))    ;; Tap: " | Shift: '
 
@@ -147,15 +146,15 @@
   hc (t! lhrm   c      lmet)
 
   ;; ── Symbol Layer Home Row Mods (no @tap — stay on sym) ──
-  excl (t! slhrm   S-1    lmet)
-  eq   (t! slhrm   =      lalt)
-  lpar (t! slhrm   S-9    lctl)
-  rpar (t! slhrm   S-0    lsft)
+  slbrc (t! slhrm   S-[    lmet)
+  slpar (t! slhrm   S-9    lalt)
+  slbkt (t! slhrm   [      lctl)
+  smin  (t! slhrm   -      lsft)
 
-  rbkt (t! srhrm   ]      rsft)
-  lbkt (t! srhrm   [      rctl)
-  rbrc (t! srhrm   S-]    ralt)
-  lbrc (t! srhrm   S-[    rmet)
+  ssem  (t! srhrm   ;      rsft)
+  seq   (t! srhrm   =      rctl)
+  scol  (t! srhrm   S-;    ralt)
+  sexcl (t! srhrm   S-1    rmet)
 
   ;; ── Non-HRM keys as typing-layer triggers ──────────
   tw (multi w @tap)
@@ -200,7 +199,7 @@
 ;;                   esc   spc       bspc  del
 
 (deflayer canary-base
-  @tw   @tl   @ty   @tp   @tb       @tz   @tf   @to   @tu   @sem
+  @tw   @tl   @ty   @tp   @tb       @tz   @tf   @to   @tu   '
   @hc   @hr   @hs   @ht   @tg       @tm   @hn   @he   @hi   @ha
   @tq   @tj   @tv   @td   @tk       @tx   @th   /     @com  @dot
                     _     @nav      @sym  _
@@ -211,7 +210,7 @@
 ;; ---------------------------------------------------------------------------
 
 (deflayer canary-nomods
-  w     l     y     p     b         z     f     o     u     @sem
+  w     l     y     p     b         z     f     o     u     '
   c     r     s     t     g         m     n     e     i     a
   q     j     v     d     k         x     h     /     @com  @dot
                     _     @nav      @sym  _
@@ -230,14 +229,14 @@
 ;; ---------------------------------------------------------------------------
 ;; SYMBOL LAYER
 ;; ---------------------------------------------------------------------------
-;; %     &     +     *     _         _     :     "     '     ^
-;; !     =     (     )     _         _     ]     [     }     {
-;; <     |     -     >     _         _     \     `     ~     _
+;; _     ^     ~     <     _         _     >     \     +     _
+;; {     (     [     -     |         *     ;     =     :     !
+;; _     }     )     ]     $         _     %     `     &     _
 
 (deflayer sym
-  S-5   S-7   S-=   S-8   _         _     S-;   S-'   '     S-6
-  @excl @eq   @lpar @rpar _         _     @rbkt @lbkt @rbrc @lbrc
-  S-,   S-\   -     S-.   _         _     \     `     S-`   _
+  _     S-6   S-`   S-,   _         _     S-.   \     S-=   _
+  @slbrc @slpar @slbkt @smin S-\       S-8   @ssem @seq  @scol @sexcl
+  _     S-]   S-0   ]     S-4       _     S-5   `     S-7   _
                     _     _         _     _
 )
 
