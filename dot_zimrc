@@ -21,6 +21,15 @@ zmodule utility
 
 # <-- Normally new modules should be added here. Check each module documentation
 # for any caveats.
+# Configures fzf for faster fetching of files and directories names.
+zmodule fzf
+# Adds aliases and better defaults for eza or exa.
+zmodule exa
+# Sets up chezmoi in zsh.
+zmodule joke/zim-chezmoi
+# Sets up zoxide in zsh.
+zmodule kiesman99/zim-zoxide
+zmodule magic-enter
 
 #
 # Prompt
@@ -56,8 +65,3 @@ zmodule zsh-users/zsh-history-substring-search
 # performance: ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodule zsh-users/zsh-autosuggestions
 
-# CUSTOM MODULES
-# Configures fzf for faster fetching of files and directories names.
-zmodule fzf
-# Adds aliases and better defaults for eza or exa.
-zmodule exa

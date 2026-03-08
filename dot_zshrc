@@ -1,41 +1,45 @@
-# Lines configured by zsh-newuser-install
-HISTFILE=~/.histfile
-HISTSIZE=10000
-SAVEHIST=10000
-setopt autocd extendedglob nomatch notify
-unsetopt beep
-bindkey -e
-# End of lines configured by zsh-newuser-install
-# The following lines were added by compinstall
-zstyle :compinstall filename '/home/rthm/.zshrc'
+# --- Zim Framework ---
+ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
+# Install missing modules and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+  source /usr/share/zimfw/zimfw.zsh init
+fi
+# Initialize modules.
+source ${ZIM_HOME}/init.zsh
 
-autoload -Uz compinit
-compinit
-zstyle ':completion:*' menu select=2
-eval $(dircolors)
-zstyle ':completion:*' list-colors ''
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-
-# End of lines added by compinstall
-eval "$(starship init zsh)"
-
-[[ -n $terminfo[khome] ]] && bindkey $terminfo[khome] beginning-of-line
-[[ -n $terminfo[kend]  ]] && bindkey $terminfo[kend]  end-of-line
-[[ -n $terminfo[kdch1] ]] && bindkey $terminfo[kdch1] delete-char
-
-export EDITOR="helix"
-
-export BAT_THEME="Catppuccin Mocha"
-
-export MANROFFOPT="-c"
-export MANWIDTH=90
-export MANPAGER="less --use-color -Ddg* -DuC_ -DSM~ -DNy -DPy~ -DEr"
-
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
-
+# --- Aliases ---
 # chezmoi quick push
 alias czpush='chezmoi git -- add -A && chezmoi git -- commit -m "update dotfiles" && chezmoi git -- push'
 
+# --- Scripts ---
 # package manager wrapper
 source "$HOME/.config/pkgs/pkg.sh"
+
+
+
+# ==========================================
+# ZSH / ZIMFW KEYBINDINGS & USAGE CHEAT SHEET
+# ==========================================
+
+# --- ZSH-AUTOSUGGESTIONS ---
+# [Right Arrow] or [End] : Accept the entire gray suggestion.
+# [Alt] + [Right Arrow]  : Accept the suggestion word-by-word.
+
+# --- ZSH-HISTORY-SUBSTRING-SEARCH ---
+# Type a partial command (e.g., 'curl') then press:
+# [Up Arrow]   : Search backward in history for commands starting with 'curl'.
+# [Down Arrow] : Search forward in history.
+
+# --- FZF (FUZZY FINDER) ---
+# [Ctrl] + [R] : Fuzzy search your entire command history.
+# [Ctrl] + [T] : Fuzzy search files in the current dir and paste the path into the prompt.
+# [Alt] + [C]  : Fuzzy find a sub-directory and immediately `cd` into it.
+
+# --- ZIMFW NATIVE SHORTCUTS ---
+# [Enter] (on empty line)        : Runs 'eza' (ls) and 'git status' automatically (magic-enter).
+# [Ctrl] + [X] then [Ctrl] + [E] : Opens the current command in Helix to edit it safely.
+
+# --- CUSTOM COMMANDS ---
+# z <string>       : Smart cd using zoxide (e.g., 'z config' jumps to ~/.config).
+# unarchive <file> : Automatically extracts any compressed file (archive module).
+# ==========================================

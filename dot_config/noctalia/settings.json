@@ -102,11 +102,6 @@
                     "showBadge": true,
                     "showLabelsOnlyWhenOccupied": false,
                     "unfocusedIconsOpacity": 1
-                },
-                {
-                    "defaultSettings": {
-                    },
-                    "id": "plugin:mangowc-layout-switcher"
                 }
             ],
             "right": [

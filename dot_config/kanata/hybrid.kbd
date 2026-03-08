@@ -4,7 +4,7 @@
 (defcfg
   process-unmapped-keys yes
   concurrent-tap-hold yes
-  chords-v2-min-idle 30       ;; ms of idle before combos re-engage
+  chords-v2-min-idle 100       ;; ms of idle before combos re-engage
 )
 
 ;; ---------------------------------------------------------------------------
@@ -23,7 +23,7 @@
 ;; ---------------------------------------------------------------------------
 (defvar
   tap-time          200   ;; tap-repress-timeout (quick-tap in ZMK)
-  hold-time         280   ;; tapping-term
+  hold-time         250   ;; tapping-term
   require-prior-idle 150  ;; ms of idle before HRMs re-engage
   sticky-time       1500  ;; one-shot modifier timeout
 
