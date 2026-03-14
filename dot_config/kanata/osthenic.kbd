@@ -1,0 +1,223 @@
+;; Kanata Configuration for Wide-Mod Mirrored Sthenic on ANSI Keyboards
+;; No HRMs — plain keys only
+
+(defcfg
+  process-unmapped-keys yes
+  concurrent-tap-hold yes
+  chords-v2-min-idle 100              ;; ms of idle before combos re-engage
+  movemouse-inherit-accel-state yes   ;; smoother direction changes
+  movemouse-smooth-diagonals yes      ;; smoother diagonal movement
+)
+
+;; ---------------------------------------------------------------------------
+;; SOURCE DEFINITION (61 keys)
+;; ---------------------------------------------------------------------------
+
+(defsrc
+  esc   f1    f2    f3    f4    f5          f6    f7    f8    f9    f10   f11   f12
+  
+  grv   1     2     3     4     5           6     7     8     9     0     -     =     bspc
+  tab   q     w     e     r     t           y     u     i     o     p     [     ]     \
+  caps  a     s     d     f     g           h     j     k     l     ;     '     ent
+        lsft  z     x     c     v     b     n     m     ,     .     /     rsft
+        
+        lctl  lmet        lalt  spc            ralt  rctl        rmet  left
+)
+
+;; ---------------------------------------------------------------------------
+;; VARIABLES
+;; ---------------------------------------------------------------------------
+(defvar
+  tap-time          200
+  hold-time         250
+  sticky-time       1500  ;; one-shot modifier timeout
+)
+
+;; ---------------------------------------------------------------------------
+;; VIRTUAL KEYS
+;; ---------------------------------------------------------------------------
+(defvirtualkeys
+  os-lsft (one-shot-press-pcancel $sticky-time lsft)
+  os-lctl (one-shot-press-pcancel $sticky-time lctl)
+  os-lmet (one-shot-press-pcancel $sticky-time lmet)
+  os-lalt (one-shot-press-pcancel $sticky-time lalt)
+)
+
+;; ---------------------------------------------------------------------------
+;; ALIASES
+;; ---------------------------------------------------------------------------
+(defalias
+  ;; Custom shifted pairs
+  com (fork , S-3 (lsft rsft))              ;; Tap: , | Shift: #
+  dot (fork . S-2 (lsft rsft))              ;; Tap: . | Shift: @
+  spa (fork spc S-- (lsft rsft))            ;; Tap: Space | Shift: _
+  quo (fork S-' (unshift ') (lsft rsft))    ;; Tap: " | Shift: '
+
+  ;; Repeat & Reload
+  ree rpt-any                                ;; Repeat last key + modifiers
+  rld lrld                                   ;; Live-reload kanata config
+
+  ;; Layer Toggles (Thumbs)
+  nav (tap-hold $tap-time $hold-time @spa (layer-toggle nav))   ;; Tap: Space | Hold: Nav
+  numfn (tap-hold $tap-time $hold-time esc (layer-toggle numfn))  ;; Tap: Esc | Hold: Num+Fn
+  sym (tap-hold $tap-time $hold-time bspc (layer-toggle sym))    ;; Tap: Bspc | Hold: Sym
+
+  ;; One-shot layer toggles (for combos)
+  osnf (one-shot-press $sticky-time (layer-toggle numfn))
+  ossm (one-shot-press $sticky-time (layer-toggle sym))
+  osnv (one-shot-release $sticky-time (layer-toggle nav))
+
+  ;; One-shot sticky modifiers
+  lssh (one-shot-press-pcancel $sticky-time lsft)
+  rssh (one-shot-press-pcancel $sticky-time rsft)
+  lsct (one-shot-press-pcancel $sticky-time lctl)
+  rsct (one-shot-press-pcancel $sticky-time rctl)
+  lsme (one-shot-press-pcancel $sticky-time lmet)
+  rsme (one-shot-press-pcancel $sticky-time rmet)
+  lsal (one-shot-press-pcancel $sticky-time lalt)
+  rsal (one-shot-press-pcancel $sticky-time ralt)
+
+  ;; Nav-layer modifiers: hold modifier while pressed, activate one-shot on release
+  nsh  (multi lsft (on-release tap-vkey os-lsft))
+  nct  (multi lctl (on-release tap-vkey os-lctl))
+  nme  (multi lmet (on-release tap-vkey os-lmet))
+  nal  (multi lalt (on-release tap-vkey os-lalt))
+
+  ;; Nav layer aliases
+  cpy C-c
+  pst C-v
+  cut C-x
+  und C-z
+  rdo C-y
+  
+  slct C-a
+
+  
+  lchr M-spc
+  scsh M-s
+  dict M-ins
+
+  cpw (caps-word $sticky-time)
+
+  ;; Mouse movement (accelerated)
+  ;; (movemouse-accel-DIR interval-ms ramp-ms min-px max-px)
+  ;;   1ms between moves, 1000ms to ramp from 1px to 5px per tick
+  mmu (movemouse-accel-up    8 300 1 6)
+  mmd (movemouse-accel-down  8 300 1 6)
+  mml (movemouse-accel-left  8 300 1 6)
+  mmr (movemouse-accel-right 8 300 1 6)
+
+  ;; Mouse scroll
+  ;; (mwheel-DIR interval-ms distance)  — 120 = one scroll notch
+  msu (mwheel-up    50 120)
+  msd (mwheel-down  50 120)
+  msl (mwheel-left  50 120)
+  msr (mwheel-right 50 120)
+
+  ;; Mouse speed modifier (percentage of normal speed)
+  mfst (movemouse-speed 200)              ;; 2× speed
+  mslw (movemouse-speed 50)               ;; ½ speed
+
+  ;; Return to base from mouse layer
+  mext (layer-switch sthenic-base)
+)
+
+(defchordsv2
+  (i 0)       esc                                                  50  all-released  ()
+  (lalt rctl) (one-shot-press $sticky-time (layer-toggle numfn))    200 first-release ()
+  (z x c)     (layer-switch mouse)                                 50  all-released  ()
+
+  (i p)       bspc                                                 40  all-released  ()
+  (k ;)       ent                                                  40  all-released  ()
+  (w r)       tab                                                  40  all-released  ()
+  (s f)       esc                                                  40  all-released  ()
+)
+
+;; ---------------------------------------------------------------------------
+;; BASE LAYER (Mirrored Sthenic) — No HRMs
+;; ---------------------------------------------------------------------------
+;; .     o     u     f     j         q     y     r     d     b
+;; i     a     e     h     v         w     c     n     t     s
+;; ,     '     /     m     l         p     g     x     k     z
+
+(deflayer sthenic-base
+  caps  _     _     _     _     _           _     _     _     _     _     _     _
+  
+  _     _     _     _     _     _           _     _     _     _     _     _     _     _
+  tab   @dot  o     u     m     v           ;     w     g     r     d     b     bspc  del
+  esc   i     a     e     h     f           \     y     c     n     t     s     ent
+        @com  '     /     l     j     [     ]     q     p     x     k     z
+        
+        _     _           @osnv @lssh          @spa  @ossm       _     _
+)
+
+;; ---------------------------------------------------------------------------
+;; NAV LAYER (mirrored)
+;; ---------------------------------------------------------------------------
+(deflayer nav
+  _     _     _     _     _     _           _     _     _     _     _     _     _
+  
+  f11   f1    f2    f3    f4    f5          _     f6    f7    f8    f9    f10   f12   _
+  _     @rld  _     _     @dict _           _     pgup  bspc  up    del   @cpw  _     _
+  _     @nme  @nal  @nct  @nsh  _           _     tab   left  down  right esc   _
+        @slct @und  @cut  @cpy  @pst  _     _     pgdn  home  @ree  end   @scsh
+        
+        _     _           _     _              ent   _           _     _
+)
+
+;; ---------------------------------------------------------------------------
+;; SYMBOL LAYER
+;; ---------------------------------------------------------------------------
+;; _     [     {     (     ~         `     )     }     ]     \
+;; -     +     *     =     <         >     rsft  rctl  ralt  rmet
+;; !     |     &     :     ;         ^     $     %     _     _
+
+(deflayer sym
+  _     _     _     _     _     _           _     _     _     _     _     _     _
+  
+  _     _     _     _     _     _           _     _     _     _     _     _     _     _
+  _     _     [     S-[   S-9   S-`         _     `     S-0   S-]   ]     \     _     _
+  _     -     S-=   S-8   =     S-,         _     S-.   @rssh @rsct @rsal @rsme _
+        S-1   S-\   S-7   S-;   ;     _     _     S-6   S-4   S-5   _     _
+        
+        _     _           _     _              _     _           _     _
+)
+
+;; ---------------------------------------------------------------------------
+;; NUM+FN LAYER (combined)
+;; ---------------------------------------------------------------------------
+;; 1     2     3     4     5         6     7     8     9     0
+;; lmet  lalt  lctl  lsft  f11       f12   rsft  rctl  ralt  rmet
+;; f1    f2    f3    f4    f5        f6    f7    f8    f9    f10
+
+(deflayer numfn
+  _     _     _     _     _     _           _     _     _     _     _     _     _
+  
+  _     _     _     _     _     _           _     _     _     _     _     _     _     _
+  _     1     2     3     4     5           _     6     7     8     9     0     _     _
+  _     @lsme @lsal @lsct @lssh f11         _     f12   @rssh @rsct @rsal @rsme _
+        f1    f2    f3    f4    f5    _     _     f6    f7    f8    f9    f10
+        
+        _     _           _     _              _     _           _     _
+)
+
+;; ---------------------------------------------------------------------------
+;; MOUSE LAYER (toggle via ZXC combo, Esc to exit)
+;; ---------------------------------------------------------------------------
+;; Left hand:  modifiers (same as nav) + scroll
+;; Right hand: mouse movement + clicks
+;;
+;; scroll-l  lclick  mouse-up   rclick  _
+;; scroll-r  mouse-l mouse-down mouse-r esc→base
+;; _         lclick  _          rclick  _
+
+(deflayer mouse
+  @mext _     _     _     _     _           _     _     _     _     _     _     _
+  
+  _     _     _     _     _     _           _     _     _     _     _     _     _     _
+  _     _     @msu  @msd  _     _           _     @msl  mlft  @mmu  mrgt  _     _     _
+  _     @nme  @nal  @nct  @nsh  _           _     @msr  @mml  @mmd  @mmr  @mext _
+        @mfst @mslw _     _     _     _     _     _     mltp  _     mrtp  _
+        
+        _     _           _     _              _     _           _     _
+)
