@@ -14,8 +14,13 @@ alias czpush='chezmoi git -- add -A && chezmoi git -- commit -m "update dotfiles
 # --- Scripts ---
 # package manager wrapper
 source "$HOME/.config/pkgs/pkg.sh"
+export PATH="$HOME/.cargo/bin:$PATH"
 
-
+# Global command for typr
+typr() {
+    # We use a subshell (...) so it doesn't change your current terminal directory
+    (cd ~/.local/share/typr && uv run main.py "$@")
+}
 
 # ==========================================
 # ZSH / ZIMFW KEYBINDINGS & USAGE CHEAT SHEET

@@ -144,9 +144,9 @@
   caps  _     _     _     _     _           _     _     _     _     _     _     _
   
   _     _     _     _     _     _           _     _     _     _     _     _     _     _
-  tab   @dot  o     u     m     v           ;     w     g     r     d     b     bspc  del
+  S-9   @dot  o     u     m     v           ;     w     g     r     d     b     S-0   _
   esc   i     a     e     h     f           \     y     c     n     t     s     ent
-        @com  '     /     l     j     [     ]     q     p     x     k     z
+        @com  '     /     l     j     tab   bspc  q     p     x     k     z
         
         _     _           @osnv @lssh          @spa  @ossm       _     _
 )

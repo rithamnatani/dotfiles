@@ -80,6 +80,7 @@ thunar-volman
 ttf-crimson-pro
 ttf-ibm-plex
 ttf-iosevkaterm-nerd
+ttyper
 tumbler
 unzip
 uv
@@ -137,6 +138,7 @@ xfwm4
 xfwm4-themes
 xorg-server
 xwayland-satellite
+yt-dlp
 zellij
 zoxide
 zsh
