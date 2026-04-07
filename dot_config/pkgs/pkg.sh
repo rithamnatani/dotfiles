@@ -15,11 +15,20 @@
 PKGDIR="$HOME/.config/pkgs"
 
 _pkg_machine() {
-    chezmoi data -f json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('machine',''))" 2>/dev/null
+    chezmoi execute-template '{{ .machine }}' 2>/dev/null
 }
 
 _pkg_is_official() {
     pacman -Si "$1" &>/dev/null
+}
+
+_pkg_target_packages() {
+    local machine="$1" prefix="$2"
+    if [[ "$machine" == "wsl" ]]; then
+        cat "$PKGDIR/${prefix}-wsl.pkgs" 2>/dev/null
+    else
+        cat "$PKGDIR/${prefix}-common.pkgs" "$PKGDIR/${prefix}-${machine}.pkgs" 2>/dev/null
+    fi
 }
 
 _pkg_list_add() {
@@ -248,8 +257,7 @@ pkg() {
             fi
 
             local target
-            target=$(cat "$PKGDIR"/pacman-common.pkgs "$PKGDIR"/pacman-${current_machine}.pkgs \
-                         "$PKGDIR"/aur-common.pkgs "$PKGDIR"/aur-${current_machine}.pkgs 2>/dev/null \
+            target=$({ _pkg_target_packages "$current_machine" pacman; _pkg_target_packages "$current_machine" aur; } \
                      | grep -v '^#' | grep -v '^$' | sort -u)
             local installed
             installed=$(pacman -Qqe | sort -u)
@@ -281,10 +289,10 @@ pkg() {
             fi
 
             local pacman_target
-            pacman_target=$(cat "$PKGDIR"/pacman-common.pkgs "$PKGDIR"/pacman-${current_machine}.pkgs 2>/dev/null \
+            pacman_target=$(_pkg_target_packages "$current_machine" pacman \
                             | grep -v '^#' | grep -v '^$' | sort -u)
             local aur_target
-            aur_target=$(cat "$PKGDIR"/aur-common.pkgs "$PKGDIR"/aur-${current_machine}.pkgs 2>/dev/null \
+            aur_target=$(_pkg_target_packages "$current_machine" aur \
                          | grep -v '^#' | grep -v '^$' | sort -u)
             local installed
             installed=$(pacman -Qqe | sort -u)
@@ -336,8 +344,7 @@ pkg() {
 
             # All packages that should be on this machine
             local target
-            target=$(cat "$PKGDIR"/pacman-common.pkgs "$PKGDIR"/pacman-${current_machine}.pkgs \
-                         "$PKGDIR"/aur-common.pkgs "$PKGDIR"/aur-${current_machine}.pkgs 2>/dev/null \
+            target=$({ _pkg_target_packages "$current_machine" pacman; _pkg_target_packages "$current_machine" aur; } \
                      | grep -v '^#' | grep -v '^$' | sort -u)
 
             local installed
